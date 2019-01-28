@@ -1,0 +1,128 @@
+###my code
+let poly = [];
+let n = 3;
+let w = 500;
+let h = 500;
+let chord = [];
+let root = 30;
+let major = [ 4, 5, 6 ];
+let minor = [ 10, 12, 15 ];
+let circle; 
+function setup() {
+  createCanvas(w, h);
+  strokeWeight(12);
+  noFill();
+  circle = new dot();
+  cursor('https://s3.amazonaws.com/mupublicdata/cursor.cur');
+  n++; // add extra point for closing the polygon
+  
+  for (let i = 0; i < n; i++) {
+    // populate regular polygon vertices given number of points n
+  	let a = {
+      x: (w/2) + 100*sin(map(i, 0, n-1, 0, TAU)),
+      y: (h/2) + 100*cos(map(i, 0, n-1, 0, TAU))
+    }
+  	poly.push(a)
+  }  
+  // initialize oscillators
+  for (let i = 0; i < 3; i++)
+    	chord[i] = new p5.SinOsc()
+  
+  
+  // initialize with major chord intervals
+  for (let i = 0; i < chord.length; i++) {
+    	chord[i].freq(major[i] * root)
+        chord[i].amp(0.0)
+  		chord[i].stop()
+  }
+}
+function draw() {
+  blendMode(BLEND)
+  background(0, 0, 0)
+  blendMode(ADD)
+  stroke(255, 0, 0)
+  drawPoly(1000, 1000)
+  stroke(0, 255, 0)
+  drawPoly(1200, 1500)
+  stroke(0, 0, 255)
+  drawPoly(2000, 1700)
+  circle.warp();
+  circle.shape();
+  circle.drawPoly(1000, 1000);
+  warpOsc();
+}
+class dot {
+  constructor(x,y,diameter,speed) {
+    this.x = 250;
+    this.y = 250;
+    this.diameter = 250;
+    this.speed = 1;
+  }
+  warp() {
+    this.x += random(-this.speed, this.speed);
+    this.y += random(-this.speed, this.speed);
+  }
+  drawPoly(dx, dy) {
+	  let g = 0
+	  if (mouseIsPressed)
+		  g = random(-2, 2)
+	  beginShape()
+	  for (let i = 0; i < n; i++) {
+		  let bias = dist(mouseX, mouseY, poly[i].x, poly[i].y)
+  	      vertex(poly[i].x + dx / logMap(bias, w, 0, dx, 45) + g, poly[i].y + dy / logMap(bias, h, 0, dy, 45) + g)
+  }
+      endShape()
+}  
+  shape() {
+    ellipse(this.x, this.y, this.diameter, this.diameter);
+  }
+  get diameter(){
+	  return this.diameter;
+  }
+  get speed(){
+	  return this.speed;
+  }
+}
+// 
+function logMap(value, start1, stop1, start2, stop2) {    
+  start2 = log(start2)
+  stop2 = log(stop2) 
+  return exp(start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1)))
+}
+function drawPoly(dx, dy) {
+  let g = 0
+  if (mouseIsPressed)
+    g = random(-2, 2)    
+  beginShape()
+  for (let i = 0; i < n; i++) {
+  	let bias = dist(mouseX, mouseY, poly[i].x, poly[i].y)
+  	vertex(poly[i].x + dx / logMap(bias, w, 0, dx, 45) + g, poly[i].y + dy / logMap(bias, h, 0, dy, 45) + g)
+  }
+  endShape()
+}
+function warpOsc() {  
+  let bias = 0
+  for (let i = 0; i < n; i++)
+  	bias = max(bias, dist(mouseX, mouseY, poly[i].x, poly[i].y))  
+  for (let i = 0; i < chord.length; i++)
+    chord[i].freq(map(bias, w, 0, major[i], minor[i]) * root)
+}
+function mousePressed() {  
+  for (let i = 0; i < chord.length; i++) {
+    chord[i].start()
+    chord[i].amp(0.3, 0.5)
+  }
+}
+function mouseReleased() { 
+  for (let i = 0; i < chord.length; i++) {
+    chord[i].amp(0.0, 0.05)
+    chord[i].stop()
+  }
+}
+
+###code structure
+firstly create the variables and constants that will be called later
+in function setup, create canvas and declare some generic properties for variables, initialize oscillators that will be used later
+in function draw, set the backgroud mode and color and use additional blend mode to separate color channel and call the functions of chosed objects
+declare class and elaborate the functions involved
+other implementations about the functions
